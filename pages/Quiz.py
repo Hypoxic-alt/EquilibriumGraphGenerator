@@ -77,8 +77,8 @@ def generate_quiz():
     reaction = reaction_options[reaction_key]
     reagents = reaction["reagents"]
     quiz = []
-    sim_effects = []      # store simulation effect for each boundary
-    addition_choices = [] # for boundaries with Addition, record chosen reagent
+    sim_effects = []      # Store simulation effect for each boundary.
+    addition_choices = [] # For Addition boundaries, record chosen reagent.
     for boundary in range(1, 5):
         change_type = random.choice(["Temperature", "Volume/Pressure", "Addition"])
         if change_type == "Temperature":
@@ -90,7 +90,8 @@ def generate_quiz():
             sim_effects.append(effect)
             addition_choices.append(None)
         elif change_type == "Volume/Pressure":
-            effect = random.choice([0.2, -0.2])
+            # Use a larger effect value (±0.5) for volume changes.
+            effect = random.choice([0.5, -0.5])
             correct = "Increase in Volume" if effect > 0 else "Decrease in Volume"
             options = [correct,
                        "Decrease in Volume" if effect > 0 else "Increase in Volume",
@@ -114,7 +115,8 @@ def generate_quiz():
             options = [correct,
                        "Addition of " + (random.choice([x for x in available if x != chosen_reagent]) if len(available)>1 else chosen_reagent),
                        "Increase in Temperature", "Decrease in Temperature"]
-            sim_effects.append(random.choice([0.2, -0.2]))
+            # For addition, always use a positive effect.
+            sim_effects.append(0.2)
             addition_choices.append(chosen_reagent)
         random.shuffle(options)
         quiz.append({
@@ -140,7 +142,7 @@ quiz = st.session_state.quiz
 sim_effects = st.session_state.quiz_sim_effects
 addition_choices = st.session_state.quiz_addition_choices
 
-# For plotting, extract phase changes from quiz.
+# Extract phase changes from the quiz.
 phase_changes = [q["change_type"] for q in quiz]
 
 st.title("Quiz")
@@ -157,10 +159,11 @@ def generic_reaction(concentrations, t, k1, k2, a, b, c, d):
 def draw_connection(t_value, prev_value, next_value, color):
     plt.vlines(t_value, prev_value, next_value, colors=color, linestyles='solid', linewidth=2)
 
+# Now include addition_choices as a parameter.
 def simulate_reaction(a, b, c, d, delta_H,
                       temp_effects, vol_effects,
                       A_perturb_list, B_perturb_list, C_perturb_list, D_perturb_list,
-                      phase_changes, show_title):
+                      phase_changes, show_title, addition_choices):
     k1_base = 0.02
     k2_base = 0.01
     k1_current = k1_base
@@ -187,45 +190,46 @@ def simulate_reaction(a, b, c, d, delta_H,
                 effect = vol_effects[i]
                 init_state = init_state / (1 + effect)
             elif current_boundary == "Addition":
+                # Apply the addition effect to the chosen reagent.
                 chosen = addition_choices[i]
                 if chosen == reaction["reagents"].get("reactant1", "R1"):
-                    init_state[0] *= (1 + sim_effects[i])
+                    init_state[0] *= (1 + temp_effects[i])  # using temp_effects here as the addition effect is stored there
                 elif chosen == reaction["reagents"].get("reactant2", "R2"):
-                    init_state[1] *= (1 + sim_effects[i])
+                    init_state[1] *= (1 + temp_effects[i])
                 elif chosen == reaction["reagents"].get("product1", "P1"):
-                    init_state[2] *= (1 + sim_effects[i])
+                    init_state[2] *= (1 + temp_effects[i])
                 elif chosen == reaction["reagents"].get("product2", "P2"):
-                    init_state[3] *= (1 + sim_effects[i])
-    fig = plt.figure(figsize=(10,6))
+                    init_state[3] *= (1 + temp_effects[i])
+    fig = plt.figure(figsize=(10, 6))
     phases_labels = ["Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5"]
-    colors = {'reactant1':'blue','reactant2':'red','product1':'green','product2':'purple'}
+    colors = {'reactant1': 'blue', 'reactant2': 'red', 'product1': 'green', 'product2': 'purple'}
     # Plot each phase for each reagent if present.
     if a != 0:
-        plt.plot(t_phases[0], sols[0][:,0], label=f"{reaction['reagents'].get('reactant1','R1')} {phases_labels[0]}", color=colors['reactant1'], linewidth=2)
+        plt.plot(t_phases[0], sols[0][:, 0], label=f"{reaction['reagents'].get('reactant1','R1')} {phases_labels[0]}", color=colors['reactant1'], linewidth=2)
     if b != 0:
-        plt.plot(t_phases[0], sols[0][:,1], label=f"{reaction['reagents'].get('reactant2','R2')} {phases_labels[0]}", color=colors['reactant2'], linewidth=2)
+        plt.plot(t_phases[0], sols[0][:, 1], label=f"{reaction['reagents'].get('reactant2','R2')} {phases_labels[0]}", color=colors['reactant2'], linewidth=2)
     if c != 0:
-        plt.plot(t_phases[0], sols[0][:,2], label=f"{reaction['reagents'].get('product1','P1')} {phases_labels[0]}", color=colors['product1'], linewidth=2)
+        plt.plot(t_phases[0], sols[0][:, 2], label=f"{reaction['reagents'].get('product1','P1')} {phases_labels[0]}", color=colors['product1'], linewidth=2)
     if d != 0:
-        plt.plot(t_phases[0], sols[0][:,3], label=f"{reaction['reagents'].get('product2','P2')} {phases_labels[0]}", color=colors['product2'], linewidth=2)
+        plt.plot(t_phases[0], sols[0][:, 3], label=f"{reaction['reagents'].get('product2','P2')} {phases_labels[0]}", color=colors['product2'], linewidth=2)
     for i in range(1, len(phases)):
         if a != 0:
-            plt.plot(t_phases[i], sols[i][:,0], label=f"{reaction['reagents'].get('reactant1','R1')} {phases_labels[i]}", color=colors['reactant1'], linewidth=2)
+            plt.plot(t_phases[i], sols[i][:, 0], label=f"{reaction['reagents'].get('reactant1','R1')} {phases_labels[i]}", color=colors['reactant1'], linewidth=2)
         if b != 0:
-            plt.plot(t_phases[i], sols[i][:,1], label=f"{reaction['reagents'].get('reactant2','R2')} {phases_labels[i]}", color=colors['reactant2'], linewidth=2)
+            plt.plot(t_phases[i], sols[i][:, 1], label=f"{reaction['reagents'].get('reactant2','R2')} {phases_labels[i]}", color=colors['reactant2'], linewidth=2)
         if c != 0:
-            plt.plot(t_phases[i], sols[i][:,2], label=f"{reaction['reagents'].get('product1','P1')} {phases_labels[i]}", color=colors['product1'], linewidth=2)
+            plt.plot(t_phases[i], sols[i][:, 2], label=f"{reaction['reagents'].get('product1','P1')} {phases_labels[i]}", color=colors['product1'], linewidth=2)
         if d != 0:
-            plt.plot(t_phases[i], sols[i][:,3], label=f"{reaction['reagents'].get('product2','P2')} {phases_labels[i]}", color=colors['product2'], linewidth=2)
+            plt.plot(t_phases[i], sols[i][:, 3], label=f"{reaction['reagents'].get('product2','P2')} {phases_labels[i]}", color=colors['product2'], linewidth=2)
         t_boundary = t_phases[i-1][-1]
         if a != 0:
-            draw_connection(t_boundary, sols[i-1][-1,0], sols[i][0,0], colors['reactant1'])
+            draw_connection(t_boundary, sols[i-1][-1, 0], sols[i][0, 0], colors['reactant1'])
         if b != 0:
-            draw_connection(t_boundary, sols[i-1][-1,1], sols[i][0,1], colors['reactant2'])
+            draw_connection(t_boundary, sols[i-1][-1, 1], sols[i][0, 1], colors['reactant2'])
         if c != 0:
-            draw_connection(t_boundary, sols[i-1][-1,2], sols[i][0,2], colors['product1'])
+            draw_connection(t_boundary, sols[i-1][-1, 2], sols[i][0, 2], colors['product1'])
         if d != 0:
-            draw_connection(t_boundary, sols[i-1][-1,3], sols[i][0,3], colors['product2'])
+            draw_connection(t_boundary, sols[i-1][-1, 3], sols[i][0, 3], colors['product2'])
     plt.xlabel("Time")
     plt.ylabel("Concentration")
     plt.title(f"{reaction_key}  |  ΔH = {reaction['delta_H']} kJ/mol")
@@ -235,10 +239,10 @@ def simulate_reaction(a, b, c, d, delta_H,
 # Display the simulation plot before quiz questions.
 fig = simulate_reaction(
     reaction["a"], reaction["b"], reaction["c"], reaction["d"], reaction["delta_H"],
-    st.session_state.quiz_sim_effects,
-    [0.0]*4,  # For simplicity, no separate vol_effects used in the quiz simulation plot.
-    [0.0]*4, [0.0]*4, [0.0]*4, [0.0]*4,  # For additions, we rely on quiz_sim_effects inside simulate_reaction.
-    phase_changes, True
+    sim_effects,  # use sim_effects for Temperature (and Addition) effects
+    [0.0]*4,      # For volume, we won't change in this quiz plot.
+    [0.0]*4, [0.0]*4, [0.0]*4, [0.0]*4,  # For additions, we'll use the effect stored in sim_effects.
+    phase_changes, True, addition_choices
 )
 st.pyplot(fig)
 
