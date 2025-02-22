@@ -2,12 +2,6 @@ import streamlit as st
 
 st.set_page_config(page_title="Reaction Setup", page_icon="⚗️", layout="wide")
 
-st.title("Reaction Setup")
-st.markdown(
-    "Choose a reaction from the list below and define the phase boundary changes. "
-    "Your configuration will be saved and used on the Simulation page (via the sidebar)."
-)
-
 # Define a dictionary of example reactions with approximate ΔH values.
 reaction_options = {
     # Exothermic reactions:
@@ -38,18 +32,55 @@ reaction_options = {
     }
 }
 
-# Use session state to persist the reaction choice
-default_reaction_choice = st.session_state.get("reaction_choice", list(reaction_options.keys())[0])
+# -------------------------------
+# Initialize session state defaults
+# -------------------------------
+if "reaction_choice" not in st.session_state:
+    st.session_state["reaction_choice"] = list(reaction_options.keys())[0]
+
+for i in range(1, 4):
+    if f"phase_change_{i}" not in st.session_state:
+        st.session_state[f"phase_change_{i}"] = "Temperature"  # default change type
+    if f"temp_effect{i}" not in st.session_state:
+        st.session_state[f"temp_effect{i}"] = 0.0
+    if f"vol_effect{i}" not in st.session_state:
+        st.session_state[f"vol_effect{i}"] = 0.0
+    if f"A_perturb{i}" not in st.session_state:
+        st.session_state[f"A_perturb{i}"] = 0.0
+    if f"B_perturb{i}" not in st.session_state:
+        st.session_state[f"B_perturb{i}"] = 0.0
+    if f"C_perturb{i}" not in st.session_state:
+        st.session_state[f"C_perturb{i}"] = 0.0
+    if f"D_perturb{i}" not in st.session_state:
+        st.session_state[f"D_perturb{i}"] = 0.0
+
+# -------------------------------
+# Layout: Title and Description
+# -------------------------------
+st.title("Reaction Setup")
+st.markdown(
+    "Choose a reaction from the list below and define the phase boundary changes. "
+    "Your configuration will be saved and used on the Simulation page (via the sidebar)."
+)
+
+# -------------------------------
+# Reaction Selection: Use the session state value.
+# -------------------------------
+default_reaction_choice = st.session_state.get("reaction_choice")
 reaction_choice = st.selectbox(
     "Choose a Reaction",
     list(reaction_options.keys()),
-    index=list(reaction_options.keys()).index(default_reaction_choice)
+    index=list(reaction_options.keys()).index(default_reaction_choice),
+    key="reaction_choice"  # this ensures the widget updates with session state
 )
 selected_reaction = reaction_options[reaction_choice]
 
+# -------------------------------
+# Phase Boundary Changes Setup
+# -------------------------------
 st.subheader("Phase Boundary Changes")
 
-# Prepare lists to store boundary change choices and their effects.
+# Lists to collect values for each boundary.
 phase_changes = []
 temp_effects = []
 vol_effects = []
@@ -58,18 +89,20 @@ B_perturb_list = []
 C_perturb_list = []
 D_perturb_list = []
 
-# Loop over the three boundaries.
 for i in range(1, 4):
     st.markdown(f"### Boundary {i} Change")
-    # Select the change type for Boundary i.
+    # Select the change type with its default from session state.
+    change_types = ["Temperature", "Volume/Pressure", "Addition"]
+    default_change = st.session_state[f"phase_change_{i}"]
     change_type = st.selectbox(
         f"Select Change Type for Boundary {i}",
-        ["Temperature", "Volume/Pressure", "Addition"],
+        change_types,
+        index=change_types.index(default_change),
         key=f"phase_change_{i}"
     )
     phase_changes.append(change_type)
     
-    # Display sliders based on the selected change type.
+    # Based on the chosen change type, display the corresponding slider(s)
     if change_type == "Temperature":
         effect = st.slider(
             f"Temperature Effect for Boundary {i}",
@@ -147,7 +180,9 @@ for i in range(1, 4):
         temp_effects.append(0.0)
         vol_effects.append(0.0)
 
-# Add a "Save Configuration" button.
+# -------------------------------
+# Save Configuration Button
+# -------------------------------
 if st.button("Save Configuration"):
     st.session_state['reaction_choice'] = reaction_choice
     st.session_state['selected_reaction'] = selected_reaction
