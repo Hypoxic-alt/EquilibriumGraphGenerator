@@ -70,5 +70,5 @@ if st.button("Go to Simulation"):
     st.session_state['C_perturb'] = C_perturb
     st.session_state['D_perturb'] = D_perturb
     # Set a query parameter to indicate the simulation page and then rerun.
-    st.experimental_set_query_params(page="Simulation")
-    st.experimental_rerun()
+    st.set_query_params(page="Simulation")
+    st.ererun()
