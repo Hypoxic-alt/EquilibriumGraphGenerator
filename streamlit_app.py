@@ -7,7 +7,6 @@ st.title("Reaction Setup")
 st.markdown("Choose a reaction and define the phase boundary changes.")
 
 # Define a dictionary of example reactions.
-# Each reaction is represented by its stoichiometric coefficients and a default reaction type.
 reaction_options = {
     "Haber Process (N₂ + 3H₂ ↔ 2NH₃)": {
         "a": 1, "b": 3, "c": 2, "d": 0,
@@ -69,6 +68,6 @@ if st.button("Go to Simulation"):
     st.session_state['B_perturb'] = B_perturb
     st.session_state['C_perturb'] = C_perturb
     st.session_state['D_perturb'] = D_perturb
-    # Set a query parameter to indicate the simulation page and then rerun.
-    st.set_query_params(page="Simulation")
-    st.ererun()
+    # Use st.query_params to set the query parameters.
+    st.query_params(page="Simulation")
+    st.rerun()
