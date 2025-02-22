@@ -77,12 +77,11 @@ def generate_quiz():
     reaction = reaction_options[reaction_key]
     reagents = reaction["reagents"]
     quiz = []
-    sim_effects = []      # Store simulation effect for each boundary.
+    sim_effects = []      # For Temperature and Volume/Pressure use; for Addition, this will be used as the addition effect.
     addition_choices = [] # For Addition boundaries, record the chosen reagent.
     for boundary in range(1, 5):
         change_type = random.choice(["Temperature", "Volume/Pressure", "Addition"])
         if change_type == "Temperature":
-            # Use ±0.5 for temperature.
             effect = random.choice([0.5, -0.5])
             correct = "Increase in Temperature" if effect > 0 else "Decrease in Temperature"
             options = [correct,
@@ -91,7 +90,6 @@ def generate_quiz():
             sim_effects.append(effect)
             addition_choices.append(None)
         elif change_type == "Volume/Pressure":
-            # Use ±1.0 for volume/pressure.
             effect = random.choice([1.0, -1.0])
             correct = "Increase in Volume" if effect > 0 else "Decrease in Volume"
             options = [correct,
@@ -100,7 +98,7 @@ def generate_quiz():
             sim_effects.append(effect)
             addition_choices.append(None)
         elif change_type == "Addition":
-            # Separate available reagents by category.
+            # Separate available reagents into reactants and products.
             reactants = []
             products = []
             if reaction["a"] != 0:
@@ -111,21 +109,18 @@ def generate_quiz():
                 products.append(reagents.get("product1", "P1"))
             if reaction["d"] != 0:
                 products.append(reagents.get("product2", "P2"))
+            # For uniqueness, choose one from each category if available.
             available = []
             if reactants:
                 available.append(random.choice(reactants))
             if products:
                 available.append(random.choice(products))
-            # Ensure uniqueness: if both lists return the same reagent, only keep one.
-            available = list(set(available))
+            available = list(set(available))  # Remove duplicates.
             chosen_reagent = random.choice(available)
             correct = "Addition of " + chosen_reagent
-            # Distractors: only include one addition option (not another from the same category).
-            distractors = [("Addition of " + chosen_reagent),  # duplicate; will be shuffled out if chosen
-                           "Increase in Temperature", "Decrease in Temperature"]
-            options = [correct] + distractors
-            random.shuffle(options)
-            sim_effects.append(0.5)  # Use a positive, noticeable addition.
+            options = [correct,
+                       "Increase in Temperature", "Decrease in Temperature", "Increase in Volume"]
+            sim_effects.append(0.5)  # For addition, use a positive effect.
             addition_choices.append(chosen_reagent)
         random.shuffle(options)
         quiz.append({
@@ -151,11 +146,15 @@ quiz = st.session_state.quiz
 sim_effects = st.session_state.quiz_sim_effects
 addition_choices = st.session_state.quiz_addition_choices
 
-# Extract phase changes from the quiz.
+# Extract phase changes from quiz questions.
 phase_changes = [q["change_type"] for q in quiz]
 
 st.title("Quiz")
 st.write("**Reaction:**", reaction_key, f"(ΔH = {reaction['delta_H']} kJ/mol)")
+
+# --- Build volume effect list for plotting ---
+# For each boundary, if it is a Volume/Pressure change, use sim_effects[i]; otherwise, use 0.
+vol_effects_plot = [sim_effects[i] if phase_changes[i] == "Volume/Pressure" else 0.0 for i in range(len(sim_effects))]
 
 # --- Plot the Reaction Simulation ---
 def generic_reaction(concentrations, t, k1, k2, a, b, c, d):
@@ -163,7 +162,7 @@ def generic_reaction(concentrations, t, k1, k2, a, b, c, d):
     r_forward = k1 * (A ** a) * (B ** b)
     r_reverse = k2 * (C ** c) * (D ** d)
     r = r_forward - r_reverse
-    return [-a * r, -b * r, c * r, d * r]
+    return [-a*r, -b*r, c*r, d*r]
 
 def draw_connection(t_value, prev_value, next_value, color):
     plt.vlines(t_value, prev_value, next_value, colors=color, linestyles='solid', linewidth=2)
@@ -198,8 +197,8 @@ def simulate_reaction(a, b, c, d, delta_H,
                 effect = vol_effects[i]
                 init_state = init_state / (1 + effect)
             elif current_boundary == "Addition":
-                # Apply addition to the chosen reagent.
                 chosen = addition_choices[i]
+                # Apply addition effect to the chosen reagent.
                 if chosen == reaction["reagents"].get("reactant1", "R1"):
                     init_state[0] *= (1 + sim_effects[i])
                 elif chosen == reaction["reagents"].get("reactant2", "R2"):
@@ -243,12 +242,13 @@ def simulate_reaction(a, b, c, d, delta_H,
     plt.tight_layout()
     return fig
 
-# Display the simulation plot before the quiz questions.
+# Build volume effects list for plotting: if phase is Volume/Pressure, use sim_effect; else 0.
+vol_effects_plot = [sim_effects[i] if phase_changes[i] == "Volume/Pressure" else 0.0 for i in range(len(sim_effects))]
+
 fig = simulate_reaction(
     reaction["a"], reaction["b"], reaction["c"], reaction["d"], reaction["delta_H"],
-    sim_effects,  # using sim_effects for temperature (and addition) effects
-    [0.0]*4,      # For volume, we assume zero effect in the quiz simulation for clarity.
-    [0.0]*4, [0.0]*4, [0.0]*4, [0.0]*4,  # For additions, the effect is contained in sim_effects.
+    sim_effects, vol_effects_plot,
+    [0.0]*4, [0.0]*4, [0.0]*4, [0.0]*4,  # For additions, effect is applied using sim_effects inside simulate_reaction.
     phase_changes, True, addition_choices
 )
 st.pyplot(fig)
