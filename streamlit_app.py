@@ -8,33 +8,33 @@ st.markdown(
     "Your configuration will be saved automatically and used in the Simulation page (via the sidebar)."
 )
 
-# Define a dictionary of example reactions.
+# Define a dictionary of example reactions with approximate ΔH values.
 reaction_options = {
     # Exothermic reactions:
     "Haber Process (N₂ + 3H₂ ↔ 2NH₃)": {
         "a": 1, "b": 3, "c": 2, "d": 0,
-        "default_reaction_type": "Exothermic"
+        "delta_H": -92  # kJ/mol
     },
     "Contact Reaction (2SO₂ + O₂ ↔ 2SO₃)": {
         "a": 2, "b": 1, "c": 2, "d": 0,
-        "default_reaction_type": "Exothermic"
+        "delta_H": -197  # kJ/mol
     },
     "Ethanol Production (C₆H₁₂O₆ ↔ 2C₂H₅OH + 2CO₂)": {
         "a": 1, "b": 0, "c": 2, "d": 2,
-        "default_reaction_type": "Exothermic"
+        "delta_H": -218  # kJ/mol
     },
     # Endothermic reactions:
     "Calcium Carbonate Decomposition (CaCO₃ ↔ CaO + CO₂)": {
         "a": 1, "b": 0, "c": 1, "d": 1,
-        "default_reaction_type": "Endothermic"
+        "delta_H": +178  # kJ/mol
     },
     "Dissolution of Ammonium Chloride (NH₄Cl ↔ NH₄⁺ + Cl⁻)": {
         "a": 1, "b": 0, "c": 1, "d": 1,
-        "default_reaction_type": "Endothermic"
+        "delta_H": +15   # kJ/mol
     },
     "Dissolution of Ammonium Nitrate (NH₄NO₃ ↔ NH₄⁺ + NO₃⁻)": {
         "a": 1, "b": 0, "c": 1, "d": 1,
-        "default_reaction_type": "Endothermic"
+        "delta_H": +25   # kJ/mol
     }
 }
 
@@ -67,7 +67,7 @@ for i in range(1, 4):
     )
     phase_changes.append(change_type)
     
-    # Based on the selected type, display the corresponding slider(s) immediately below.
+    # Display sliders immediately below the selectbox.
     if change_type == "Temperature":
         effect = st.slider(
             f"Temperature Effect for Boundary {i}",
@@ -98,7 +98,7 @@ for i in range(1, 4):
         D_perturb_list.append(0.0)
     elif change_type == "Addition":
         st.markdown(f"**Agent Addition for Boundary {i}:**")
-        # Only display sliders for species with a nonzero coefficient.
+        # Only display sliders for species that are present (nonzero coefficient).
         if selected_reaction['a'] != 0:
             A_eff = st.slider(
                 f"A Perturb for Boundary {i}",
