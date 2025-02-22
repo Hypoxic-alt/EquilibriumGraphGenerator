@@ -67,7 +67,7 @@ for i in range(1, 4):
     )
     phase_changes.append(change_type)
     
-    # Based on the selected type, display the appropriate slider(s).
+    # Based on the selected type, display the corresponding slider(s) immediately below.
     if change_type == "Temperature":
         effect = st.slider(
             f"Temperature Effect for Boundary {i}",
@@ -98,34 +98,47 @@ for i in range(1, 4):
         D_perturb_list.append(0.0)
     elif change_type == "Addition":
         st.markdown(f"**Agent Addition for Boundary {i}:**")
-        A_eff = st.slider(
-            f"A Perturb for Boundary {i}",
-            min_value=-0.5, max_value=0.5,
-            value=st.session_state.get(f"A_perturb{i}", 0.0),
-            step=0.05,
-            key=f"A_perturb_{i}"
-        )
-        B_eff = st.slider(
-            f"B Perturb for Boundary {i}",
-            min_value=-0.5, max_value=0.5,
-            value=st.session_state.get(f"B_perturb{i}", 0.0),
-            step=0.05,
-            key=f"B_perturb_{i}"
-        )
-        C_eff = st.slider(
-            f"C Perturb for Boundary {i}",
-            min_value=-0.5, max_value=0.5,
-            value=st.session_state.get(f"C_perturb{i}", 0.0),
-            step=0.05,
-            key=f"C_perturb_{i}"
-        )
-        D_eff = st.slider(
-            f"D Perturb for Boundary {i}",
-            min_value=-0.5, max_value=0.5,
-            value=st.session_state.get(f"D_perturb{i}", 0.0),
-            step=0.05,
-            key=f"D_perturb_{i}"
-        )
+        # Only display sliders for species with a nonzero coefficient.
+        if selected_reaction['a'] != 0:
+            A_eff = st.slider(
+                f"A Perturb for Boundary {i}",
+                min_value=-0.5, max_value=0.5,
+                value=st.session_state.get(f"A_perturb{i}", 0.0),
+                step=0.05,
+                key=f"A_perturb_{i}"
+            )
+        else:
+            A_eff = 0.0
+        if selected_reaction['b'] != 0:
+            B_eff = st.slider(
+                f"B Perturb for Boundary {i}",
+                min_value=-0.5, max_value=0.5,
+                value=st.session_state.get(f"B_perturb{i}", 0.0),
+                step=0.05,
+                key=f"B_perturb_{i}"
+            )
+        else:
+            B_eff = 0.0
+        if selected_reaction['c'] != 0:
+            C_eff = st.slider(
+                f"C Perturb for Boundary {i}",
+                min_value=-0.5, max_value=0.5,
+                value=st.session_state.get(f"C_perturb{i}", 0.0),
+                step=0.05,
+                key=f"C_perturb_{i}"
+            )
+        else:
+            C_eff = 0.0
+        if selected_reaction['d'] != 0:
+            D_eff = st.slider(
+                f"D Perturb for Boundary {i}",
+                min_value=-0.5, max_value=0.5,
+                value=st.session_state.get(f"D_perturb{i}", 0.0),
+                step=0.05,
+                key=f"D_perturb_{i}"
+            )
+        else:
+            D_eff = 0.0
         A_perturb_list.append(A_eff)
         B_perturb_list.append(B_eff)
         C_perturb_list.append(C_eff)
