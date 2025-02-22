@@ -2,7 +2,9 @@ import streamlit as st
 
 st.set_page_config(page_title="Reaction Setup", page_icon="⚗️", layout="wide")
 
-# Define a dictionary of example reactions with approximate ΔH values.
+# -------------------------------
+# Initialize session state defaults
+# -------------------------------
 reaction_options = {
     # Exothermic reactions:
     "Haber Process (N₂ + 3H₂ ↔ 2NH₃)": {
@@ -32,9 +34,6 @@ reaction_options = {
     }
 }
 
-# -------------------------------
-# Initialize session state defaults
-# -------------------------------
 if "reaction_choice" not in st.session_state:
     st.session_state["reaction_choice"] = list(reaction_options.keys())[0]
 
@@ -64,14 +63,13 @@ st.markdown(
 )
 
 # -------------------------------
-# Reaction Selection: Use the session state value.
+# Reaction Selection: Uses widget keys to persist state
 # -------------------------------
-default_reaction_choice = st.session_state.get("reaction_choice")
 reaction_choice = st.selectbox(
     "Choose a Reaction",
     list(reaction_options.keys()),
-    index=list(reaction_options.keys()).index(default_reaction_choice),
-    key="reaction_choice"  # this ensures the widget updates with session state
+    index=list(reaction_options.keys()).index(st.session_state["reaction_choice"]),
+    key="reaction_choice"
 )
 selected_reaction = reaction_options[reaction_choice]
 
@@ -80,7 +78,6 @@ selected_reaction = reaction_options[reaction_choice]
 # -------------------------------
 st.subheader("Phase Boundary Changes")
 
-# Lists to collect values for each boundary.
 phase_changes = []
 temp_effects = []
 vol_effects = []
@@ -91,23 +88,20 @@ D_perturb_list = []
 
 for i in range(1, 4):
     st.markdown(f"### Boundary {i} Change")
-    # Select the change type with its default from session state.
     change_types = ["Temperature", "Volume/Pressure", "Addition"]
-    default_change = st.session_state[f"phase_change_{i}"]
     change_type = st.selectbox(
         f"Select Change Type for Boundary {i}",
         change_types,
-        index=change_types.index(default_change),
+        index=change_types.index(st.session_state[f"phase_change_{i}"]),
         key=f"phase_change_{i}"
     )
     phase_changes.append(change_type)
     
-    # Based on the chosen change type, display the corresponding slider(s)
     if change_type == "Temperature":
         effect = st.slider(
             f"Temperature Effect for Boundary {i}",
             min_value=-1.0, max_value=1.0,
-            value=st.session_state.get(f"temp_effect{i}", 0.0),
+            value=st.session_state[f"temp_effect{i}"],
             step=0.05,
             key=f"temp_effect_{i}"
         )
@@ -121,7 +115,7 @@ for i in range(1, 4):
         effect = st.slider(
             f"Volume/Pressure Effect for Boundary {i}",
             min_value=-0.5, max_value=0.5,
-            value=st.session_state.get(f"vol_effect{i}", 0.0),
+            value=st.session_state[f"vol_effect{i}"],
             step=0.05,
             key=f"vol_effect_{i}"
         )
@@ -137,7 +131,7 @@ for i in range(1, 4):
             A_eff = st.slider(
                 f"A Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
-                value=st.session_state.get(f"A_perturb{i}", 0.0),
+                value=st.session_state[f"A_perturb{i}"],
                 step=0.05,
                 key=f"A_perturb_{i}"
             )
@@ -147,7 +141,7 @@ for i in range(1, 4):
             B_eff = st.slider(
                 f"B Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
-                value=st.session_state.get(f"B_perturb{i}", 0.0),
+                value=st.session_state[f"B_perturb{i}"],
                 step=0.05,
                 key=f"B_perturb_{i}"
             )
@@ -157,7 +151,7 @@ for i in range(1, 4):
             C_eff = st.slider(
                 f"C Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
-                value=st.session_state.get(f"C_perturb{i}", 0.0),
+                value=st.session_state[f"C_perturb{i}"],
                 step=0.05,
                 key=f"C_perturb_{i}"
             )
@@ -167,7 +161,7 @@ for i in range(1, 4):
             D_eff = st.slider(
                 f"D Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
-                value=st.session_state.get(f"D_perturb{i}", 0.0),
+                value=st.session_state[f"D_perturb{i}"],
                 step=0.05,
                 key=f"D_perturb_{i}"
             )
@@ -181,18 +175,20 @@ for i in range(1, 4):
         vol_effects.append(0.0)
 
 # -------------------------------
-# Save Configuration Button
+# Save Configuration Button (using a separate key for configuration)
 # -------------------------------
 if st.button("Save Configuration"):
-    st.session_state['reaction_choice'] = reaction_choice
-    st.session_state['selected_reaction'] = selected_reaction
-    st.session_state['phase_changes'] = phase_changes
-    st.session_state['temp_effects'] = temp_effects
-    st.session_state['vol_effects'] = vol_effects
-    st.session_state['A_perturb_list'] = A_perturb_list
-    st.session_state['B_perturb_list'] = B_perturb_list
-    st.session_state['C_perturb_list'] = C_perturb_list
-    st.session_state['D_perturb_list'] = D_perturb_list
+    st.session_state["config"] = {
+        "reaction_choice": reaction_choice,
+        "selected_reaction": selected_reaction,
+        "phase_changes": phase_changes,
+        "temp_effects": temp_effects,
+        "vol_effects": vol_effects,
+        "A_perturb_list": A_perturb_list,
+        "B_perturb_list": B_perturb_list,
+        "C_perturb_list": C_perturb_list,
+        "D_perturb_list": D_perturb_list,
+    }
     st.success("Configuration saved!")
 
 st.info("Your configuration will persist between sessions. Now navigate to the Simulation page via the sidebar.")
