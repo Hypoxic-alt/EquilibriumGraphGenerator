@@ -41,7 +41,7 @@ for i in range(1, 4):
         st.session_state[f"D_perturb{i}"] = 0.0
 
 # -------------------------------
-# Reaction Selection Widget (state is maintained automatically)
+# Reaction Selection Widget (state maintained automatically)
 # -------------------------------
 reaction_choice = st.selectbox(
     "Choose a Reaction",
@@ -154,7 +154,6 @@ for i in range(1, 4):
 # Save Configuration Button
 # -------------------------------
 if st.button("Save Configuration"):
-    # Save the current configuration under a separate key.
     config = {
         "reaction_choice": reaction_choice,
         "selected_reaction": selected_reaction,
@@ -175,7 +174,17 @@ if st.button("Save Configuration"):
 if st.button("Update Sliders to Saved Config"):
     if "config" in st.session_state:
         config = st.session_state["config"]
-        # Reset the widget keys with values from the saved config.
+        # Delete widget keys so that we can update them.
+        keys_to_reset = ["reaction_choice"]
+        for i in range(1, 4):
+            keys_to_reset.extend([
+                f"phase_change_{i}", f"temp_effect{i}", f"vol_effect{i}",
+                f"A_perturb{i}", f"B_perturb{i}", f"C_perturb{i}", f"D_perturb{i}"
+            ])
+        for key in keys_to_reset:
+            if key in st.session_state:
+                del st.session_state[key]
+        # Now update the keys with saved configuration.
         st.session_state["reaction_choice"] = config["reaction_choice"]
         for i in range(1, 4):
             st.session_state[f"phase_change_{i}"] = config["phase_changes"][i-1]
@@ -186,7 +195,7 @@ if st.button("Update Sliders to Saved Config"):
             st.session_state[f"C_perturb{i}"] = config["C_perturb_list"][i-1]
             st.session_state[f"D_perturb{i}"] = config["D_perturb_list"][i-1]
         st.success("Sliders updated to saved configuration!")
-        st.experimental_rerun()  # Force a rerun so the UI refreshes with updated values.
+        st.rerun()  # Using st.rerun() as requested.
     else:
         st.error("No configuration saved to load.")
 
