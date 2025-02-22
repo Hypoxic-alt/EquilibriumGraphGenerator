@@ -12,27 +12,27 @@ def generic_reaction(concentrations, t, k1, k2, a, b, c, d):
     r = r_forward - r_reverse
     return [-a*r, -b*r, c*r, d*r]
 
+def draw_connection(t_value, prev_value, next_value, color):
+    # Draw a vertical line at the boundary time connecting the end and start values.
+    plt.vlines(t_value, prev_value, next_value, colors=color, linestyles='solid', linewidth=2)
+
 def simulate_reaction(a, b, c, d, reaction_type,
                       temp_effects, vol_effects,
                       A_perturb_list, B_perturb_list, C_perturb_list, D_perturb_list,
                       phase_changes, show_title,
-                      # Phase display toggles:
                       A_phase1, A_phase2, A_phase3, A_phase4,
                       B_phase1, B_phase2, B_phase3, B_phase4,
                       C_phase1, C_phase2, C_phase3, C_phase4,
                       D_phase1, D_phase2, D_phase3, D_phase4):
-    # Base rate constants.
     k1_base = 0.02
     k2_base = 0.01
     k1_current = k1_base
     k2_current = k2_base
     init_state = [1.0, 1.0, 0.0, 0.0]
-
-    # There are 4 phases: "Base" and three additional phases defined by the boundaries.
-    phases = ["Base"] + phase_changes  # length 4
+    phases = ["Base"] + phase_changes  # total of 4 phases
     sols = []
     t_phases = []
-
+    
     for i, phase in enumerate(phases):
         t_phase = np.linspace(i * 200, (i + 1) * 200, 1000)
         sol = odeint(generic_reaction, init_state, t_phase, args=(k1_current, k2_current, a, b, c, d))
@@ -40,12 +40,10 @@ def simulate_reaction(a, b, c, d, reaction_type,
         t_phases.append(t_phase)
         if i < len(phases) - 1:
             init_state = sol[-1].copy()
-            # For boundary i (between Phase i and Phase i+1)
+            # Apply the effect for boundary i
             current_boundary = phase_changes[i]
             if current_boundary == "Temperature":
                 effect = temp_effects[i]
-                # For exothermic reactions, an increase in temperature shifts equilibrium
-                # toward reactants, so we adjust k2; for endothermic, adjust k1.
                 if reaction_type == "Exothermic":
                     k2_current = k2_base * (1 + effect)
                 else:
@@ -58,28 +56,34 @@ def simulate_reaction(a, b, c, d, reaction_type,
                 init_state[1] *= (1 + B_perturb_list[i])
                 init_state[2] *= (1 + C_perturb_list[i])
                 init_state[3] *= (1 + D_perturb_list[i])
-    # Create the plot.
+    
     fig = plt.figure(figsize=(10, 6))
     phases_labels = ["Phase 1", "Phase 2", "Phase 3", "Phase 4"]
-
-    # Plot the concentrations for each species if that phase is enabled.
+    
+    # Plot phase curves for each species
     for i, sol in enumerate(sols):
         if a != 0 and ((i == 0 and A_phase1) or (i == 1 and A_phase2) or (i == 2 and A_phase3) or (i == 3 and A_phase4)):
             plt.plot(t_phases[i], sol[:, 0], label=f'A {phases_labels[i]}', color='blue', linewidth=2)
-    for i, sol in enumerate(sols):
         if b != 0 and ((i == 0 and B_phase1) or (i == 1 and B_phase2) or (i == 2 and B_phase3) or (i == 3 and B_phase4)):
             plt.plot(t_phases[i], sol[:, 1], label=f'B {phases_labels[i]}', color='red', linewidth=2)
-    for i, sol in enumerate(sols):
         if c != 0 and ((i == 0 and C_phase1) or (i == 1 and C_phase2) or (i == 2 and C_phase3) or (i == 3 and C_phase4)):
             plt.plot(t_phases[i], sol[:, 2], label=f'C {phases_labels[i]}', color='green', linewidth=2)
-    for i, sol in enumerate(sols):
         if d != 0 and ((i == 0 and D_phase1) or (i == 1 and D_phase2) or (i == 2 and D_phase3) or (i == 3 and D_phase4)):
             plt.plot(t_phases[i], sol[:, 3], label=f'D {phases_labels[i]}', color='purple', linewidth=2)
-
-    # Draw vertical dotted lines at phase boundaries.
-    for boundary in [200, 400, 600]:
-        plt.axvline(x=boundary, color='grey', linestyle=':', linewidth=1)
-
+    
+    # Draw vertical lines (using draw_connection) at phase boundaries.
+    for i in range(0, len(phases)-1):
+        t_boundary = t_phases[i][-1]
+        # For each species, if it is displayed in both phases, draw a vertical connecting line.
+        if a != 0 and ((i == 0 and A_phase1 and A_phase2) or (i == 1 and A_phase2 and A_phase3) or (i == 2 and A_phase3 and A_phase4)):
+            draw_connection(t_boundary, sols[i][-1, 0], sols[i+1][0, 0], 'blue')
+        if b != 0 and ((i == 0 and B_phase1 and B_phase2) or (i == 1 and B_phase2 and B_phase3) or (i == 2 and B_phase3 and B_phase4)):
+            draw_connection(t_boundary, sols[i][-1, 1], sols[i+1][0, 1], 'red')
+        if c != 0 and ((i == 0 and C_phase1 and C_phase2) or (i == 1 and C_phase2 and C_phase3) or (i == 2 and C_phase3 and C_phase4)):
+            draw_connection(t_boundary, sols[i][-1, 2], sols[i+1][0, 2], 'green')
+        if d != 0 and ((i == 0 and D_phase1 and D_phase2) or (i == 1 and D_phase2 and D_phase3) or (i == 2 and D_phase3 and D_phase4)):
+            draw_connection(t_boundary, sols[i][-1, 3], sols[i+1][0, 3], 'purple')
+    
     plt.xlabel("Time")
     plt.ylabel("Concentration")
     if show_title:
@@ -88,7 +92,6 @@ def simulate_reaction(a, b, c, d, reaction_type,
     plt.tight_layout()
     return fig
 
-# Retrieve saved configuration from session state.
 if 'selected_reaction' not in st.session_state:
     st.error("No reaction selected. Please go back to the Reaction Setup page.")
 else:
@@ -110,7 +113,6 @@ else:
     st.title("Simulation")
     st.write("Reaction Selected:", reaction_choice)
 
-    # Sidebar options for which phases to display.
     st.sidebar.header("Show/Hide Phase Sections")
     A_phase1 = st.sidebar.checkbox("A Phase 1", value=True)
     A_phase2 = st.sidebar.checkbox("A Phase 2", value=True)
