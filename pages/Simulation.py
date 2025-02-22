@@ -13,23 +13,27 @@ def generic_reaction(concentrations, t, k1, k2, a, b, c, d):
     return [-a*r, -b*r, c*r, d*r]
 
 def draw_connection(t_value, prev_value, next_value, color):
-    # Draw a vertical line at the boundary time connecting the end and start values.
+    # Draw a vertical line at t_value connecting the previous and next phase values.
     plt.vlines(t_value, prev_value, next_value, colors=color, linestyles='solid', linewidth=2)
 
-def simulate_reaction(a, b, c, d, reaction_type,
+def simulate_reaction(a, b, c, d, delta_H,
                       temp_effects, vol_effects,
                       A_perturb_list, B_perturb_list, C_perturb_list, D_perturb_list,
                       phase_changes, show_title,
+                      # Phase display toggles:
                       A_phase1, A_phase2, A_phase3, A_phase4,
                       B_phase1, B_phase2, B_phase3, B_phase4,
                       C_phase1, C_phase2, C_phase3, C_phase4,
                       D_phase1, D_phase2, D_phase3, D_phase4):
+    # Base rate constants.
     k1_base = 0.02
     k2_base = 0.01
     k1_current = k1_base
     k2_current = k2_base
     init_state = [1.0, 1.0, 0.0, 0.0]
-    phases = ["Base"] + phase_changes  # total of 4 phases
+    
+    # There are 4 phases: Base and three subsequent phases.
+    phases = ["Base"] + phase_changes
     sols = []
     t_phases = []
     
@@ -40,11 +44,11 @@ def simulate_reaction(a, b, c, d, reaction_type,
         t_phases.append(t_phase)
         if i < len(phases) - 1:
             init_state = sol[-1].copy()
-            # Apply the effect for boundary i
             current_boundary = phase_changes[i]
             if current_boundary == "Temperature":
                 effect = temp_effects[i]
-                if reaction_type == "Exothermic":
+                # Use delta_H value to display in title; for simulation, adjust k1/k2 as before.
+                if delta_H < 0:
                     k2_current = k2_base * (1 + effect)
                 else:
                     k1_current = k1_base * (1 + effect)
@@ -60,7 +64,7 @@ def simulate_reaction(a, b, c, d, reaction_type,
     fig = plt.figure(figsize=(10, 6))
     phases_labels = ["Phase 1", "Phase 2", "Phase 3", "Phase 4"]
     
-    # Plot phase curves for each species
+    # Plot each species for each phase if enabled.
     for i, sol in enumerate(sols):
         if a != 0 and ((i == 0 and A_phase1) or (i == 1 and A_phase2) or (i == 2 and A_phase3) or (i == 3 and A_phase4)):
             plt.plot(t_phases[i], sol[:, 0], label=f'A {phases_labels[i]}', color='blue', linewidth=2)
@@ -71,10 +75,9 @@ def simulate_reaction(a, b, c, d, reaction_type,
         if d != 0 and ((i == 0 and D_phase1) or (i == 1 and D_phase2) or (i == 2 and D_phase3) or (i == 3 and D_phase4)):
             plt.plot(t_phases[i], sol[:, 3], label=f'D {phases_labels[i]}', color='purple', linewidth=2)
     
-    # Draw vertical lines (using draw_connection) at phase boundaries.
-    for i in range(0, len(phases)-1):
+    # Draw vertical connecting lines at phase boundaries.
+    for i in range(len(phases)-1):
         t_boundary = t_phases[i][-1]
-        # For each species, if it is displayed in both phases, draw a vertical connecting line.
         if a != 0 and ((i == 0 and A_phase1 and A_phase2) or (i == 1 and A_phase2 and A_phase3) or (i == 2 and A_phase3 and A_phase4)):
             draw_connection(t_boundary, sols[i][-1, 0], sols[i+1][0, 0], 'blue')
         if b != 0 and ((i == 0 and B_phase1 and B_phase2) or (i == 1 and B_phase2 and B_phase3) or (i == 2 and B_phase3 and B_phase4)):
@@ -87,7 +90,7 @@ def simulate_reaction(a, b, c, d, reaction_type,
     plt.xlabel("Time")
     plt.ylabel("Concentration")
     if show_title:
-        title_str = "{}  |  Reaction: {}".format(st.session_state['reaction_choice'], reaction_type)
+        title_str = "{}  |  ΔH = {} kJ/mol".format(st.session_state['reaction_choice'], delta_H)
         plt.title(title_str)
     plt.tight_layout()
     return fig
@@ -101,7 +104,7 @@ else:
     b = selected_reaction['b']
     c = selected_reaction['c']
     d = selected_reaction['d']
-    reaction_type = selected_reaction['default_reaction_type']
+    delta_H = selected_reaction['delta_H']
     phase_changes = st.session_state['phase_changes']
     temp_effects = st.session_state['temp_effects']
     vol_effects = st.session_state['vol_effects']
@@ -133,7 +136,7 @@ else:
     show_title = st.sidebar.checkbox("Show Plot Title", value=True)
 
     fig = simulate_reaction(
-        a, b, c, d, reaction_type,
+        a, b, c, d, delta_H,
         temp_effects, vol_effects,
         A_perturb_list, B_perturb_list, C_perturb_list, D_perturb_list,
         phase_changes, show_title,
