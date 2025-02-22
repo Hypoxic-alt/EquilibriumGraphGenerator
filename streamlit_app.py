@@ -41,7 +41,7 @@ for i in range(1, 4):
         st.session_state[f"D_perturb{i}"] = 0.0
 
 # -------------------------------
-# Reaction Selection Widget (state maintained automatically)
+# Reaction Selection Widget (drop-down)
 # -------------------------------
 reaction_choice = st.selectbox(
     "Choose a Reaction",
@@ -169,12 +169,12 @@ if st.button("Save Configuration"):
     st.success("Configuration saved!")
 
 # -------------------------------
-# Update Sliders Button
+# Update Sliders (and Drop-Downs) Button
 # -------------------------------
 if st.button("Update Sliders to Saved Config"):
     if "config" in st.session_state:
         config = st.session_state["config"]
-        # Delete widget keys so that we can update them.
+        # Delete widget keys so that we can update them (including drop-down keys)
         keys_to_reset = ["reaction_choice"]
         for i in range(1, 4):
             keys_to_reset.extend([
@@ -184,7 +184,7 @@ if st.button("Update Sliders to Saved Config"):
         for key in keys_to_reset:
             if key in st.session_state:
                 del st.session_state[key]
-        # Now update the keys with saved configuration.
+        # Now update the keys with the saved configuration.
         st.session_state["reaction_choice"] = config["reaction_choice"]
         for i in range(1, 4):
             st.session_state[f"phase_change_{i}"] = config["phase_changes"][i-1]
@@ -194,8 +194,8 @@ if st.button("Update Sliders to Saved Config"):
             st.session_state[f"B_perturb{i}"] = config["B_perturb_list"][i-1]
             st.session_state[f"C_perturb{i}"] = config["C_perturb_list"][i-1]
             st.session_state[f"D_perturb{i}"] = config["D_perturb_list"][i-1]
-        st.success("Sliders updated to saved configuration!")
-        st.rerun()  # Using st.rerun() as requested.
+        st.success("Configuration loaded!")
+        st.rerun()  # Refresh the page so all widget values (including drop-downs) update.
     else:
         st.error("No configuration saved to load.")
 
