@@ -5,72 +5,36 @@ st.set_page_config(page_title="Reaction Setup", page_icon="⚗️", layout="wide
 st.title("Reaction Setup")
 st.markdown(
     "Choose a reaction from the list below and define the phase boundary changes. "
-    "Your configuration will be saved automatically and used in the Simulation page via the sidebar."
+    "Your configuration will be saved automatically and used in the Simulation page (via the sidebar)."
 )
 
-# Define a dictionary of example reactions with approximate ΔH values and reagent names.
+# Define a dictionary of example reactions with approximate ΔH values.
 reaction_options = {
     # Exothermic reactions:
     "Haber Process (N₂ + 3H₂ ↔ 2NH₃)": {
         "a": 1, "b": 3, "c": 2, "d": 0,
-        "delta_H": -92,  # kJ/mol
-        "reagents": {
-            "reactant1": "N₂",
-            "reactant2": "H₂",
-            "product1": "NH₃",
-            "product2": ""
-        }
+        "delta_H": -92  # kJ/mol
     },
     "Contact Reaction (2SO₂ + O₂ ↔ 2SO₃)": {
         "a": 2, "b": 1, "c": 2, "d": 0,
-        "delta_H": -197,  # kJ/mol
-        "reagents": {
-            "reactant1": "SO₂",
-            "reactant2": "O₂",
-            "product1": "SO₃",
-            "product2": ""
-        }
+        "delta_H": -197  # kJ/mol
     },
     "Ethanol Production (C₆H₁₂O₆ ↔ 2C₂H₅OH + 2CO₂)": {
         "a": 1, "b": 0, "c": 2, "d": 2,
-        "delta_H": -218,  # kJ/mol
-        "reagents": {
-            "reactant1": "C₆H₁₂O₆",
-            "reactant2": "",
-            "product1": "C₂H₅OH",
-            "product2": "CO₂"
-        }
+        "delta_H": -218  # kJ/mol
     },
     # Endothermic reactions:
     "Calcium Carbonate Decomposition (CaCO₃ ↔ CaO + CO₂)": {
         "a": 1, "b": 0, "c": 1, "d": 1,
-        "delta_H": +178,  # kJ/mol
-        "reagents": {
-            "reactant1": "CaCO₃",
-            "reactant2": "",
-            "product1": "CaO",
-            "product2": "CO₂"
-        }
+        "delta_H": +178  # kJ/mol
     },
     "Dissolution of Ammonium Chloride (NH₄Cl ↔ NH₄⁺ + Cl⁻)": {
         "a": 1, "b": 0, "c": 1, "d": 1,
-        "delta_H": +15,   # kJ/mol
-        "reagents": {
-            "reactant1": "NH₄Cl",
-            "reactant2": "",
-            "product1": "NH₄⁺",
-            "product2": "Cl⁻"
-        }
+        "delta_H": +15   # kJ/mol
     },
     "Dissolution of Ammonium Nitrate (NH₄NO₃ ↔ NH₄⁺ + NO₃⁻)": {
         "a": 1, "b": 0, "c": 1, "d": 1,
-        "delta_H": +25,   # kJ/mol
-        "reagents": {
-            "reactant1": "NH₄NO₃",
-            "reactant2": "",
-            "product1": "NH₄⁺",
-            "product2": "NO₃⁻"
-        }
+        "delta_H": +25   # kJ/mol
     }
 }
 
@@ -80,7 +44,6 @@ reaction_choice = st.selectbox(
     index=list(reaction_options.keys()).index(default_reaction_choice)
 )
 selected_reaction = reaction_options[reaction_choice]
-reagents = selected_reaction["reagents"]
 
 st.subheader("Phase Boundary Changes")
 
@@ -88,15 +51,15 @@ st.subheader("Phase Boundary Changes")
 phase_changes = []
 temp_effects = []
 vol_effects = []
-# For additions, use reagent names if available.
 A_perturb_list = []
 B_perturb_list = []
 C_perturb_list = []
 D_perturb_list = []
 
-# Loop over 4 boundaries (for 5 phases).
-for i in range(1, 5):
+# Loop over the three boundaries.
+for i in range(1, 4):
     st.markdown(f"### Boundary {i} Change")
+    # Select the change type for Boundary i.
     change_type = st.selectbox(
         f"Select Change Type for Boundary {i}",
         ["Temperature", "Volume/Pressure", "Addition"],
@@ -104,6 +67,7 @@ for i in range(1, 5):
     )
     phase_changes.append(change_type)
     
+    # Display sliders immediately below the selectbox.
     if change_type == "Temperature":
         effect = st.slider(
             f"Temperature Effect for Boundary {i}",
@@ -134,10 +98,10 @@ for i in range(1, 5):
         D_perturb_list.append(0.0)
     elif change_type == "Addition":
         st.markdown(f"**Agent Addition for Boundary {i}:**")
-        # Only display a slider if the corresponding reagent is present (coefficient nonzero).
+        # Only display sliders for species that are present (nonzero coefficient).
         if selected_reaction['a'] != 0:
             A_eff = st.slider(
-                f"{reagents.get('reactant1', 'A')} Perturb for Boundary {i}",
+                f"A Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
                 value=st.session_state.get(f"A_perturb{i}", 0.0),
                 step=0.05,
@@ -147,7 +111,7 @@ for i in range(1, 5):
             A_eff = 0.0
         if selected_reaction['b'] != 0:
             B_eff = st.slider(
-                f"{reagents.get('reactant2', 'B')} Perturb for Boundary {i}",
+                f"B Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
                 value=st.session_state.get(f"B_perturb{i}", 0.0),
                 step=0.05,
@@ -157,7 +121,7 @@ for i in range(1, 5):
             B_eff = 0.0
         if selected_reaction['c'] != 0:
             C_eff = st.slider(
-                f"{reagents.get('product1', 'C')} Perturb for Boundary {i}",
+                f"C Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
                 value=st.session_state.get(f"C_perturb{i}", 0.0),
                 step=0.05,
@@ -167,7 +131,7 @@ for i in range(1, 5):
             C_eff = 0.0
         if selected_reaction['d'] != 0:
             D_eff = st.slider(
-                f"{reagents.get('product2', 'D')} Perturb for Boundary {i}",
+                f"D Perturb for Boundary {i}",
                 min_value=-0.5, max_value=0.5,
                 value=st.session_state.get(f"D_perturb{i}", 0.0),
                 step=0.05,
@@ -182,7 +146,7 @@ for i in range(1, 5):
         temp_effects.append(0.0)
         vol_effects.append(0.0)
 
-# Save configuration to session state.
+# Save the configuration to session state.
 st.session_state['reaction_choice'] = reaction_choice
 st.session_state['selected_reaction'] = selected_reaction
 st.session_state['phase_changes'] = phase_changes
