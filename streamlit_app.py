@@ -5,7 +5,7 @@ st.set_page_config(page_title="Reaction Setup", page_icon="⚗️", layout="wide
 st.title("Reaction Setup")
 st.markdown(
     "Choose a reaction from the list below and define the phase boundary changes. "
-    "Your configuration will be saved automatically and used in the Simulation page (via the sidebar)."
+    "Your configuration will be saved and used on the Simulation page (via the sidebar)."
 )
 
 # Define a dictionary of example reactions with approximate ΔH values.
@@ -38,9 +38,11 @@ reaction_options = {
     }
 }
 
+# Use session state to persist the reaction choice
 default_reaction_choice = st.session_state.get("reaction_choice", list(reaction_options.keys())[0])
 reaction_choice = st.selectbox(
-    "Choose a Reaction", list(reaction_options.keys()),
+    "Choose a Reaction",
+    list(reaction_options.keys()),
     index=list(reaction_options.keys()).index(default_reaction_choice)
 )
 selected_reaction = reaction_options[reaction_choice]
@@ -67,7 +69,7 @@ for i in range(1, 4):
     )
     phase_changes.append(change_type)
     
-    # Display sliders immediately below the selectbox.
+    # Display sliders based on the selected change type.
     if change_type == "Temperature":
         effect = st.slider(
             f"Temperature Effect for Boundary {i}",
@@ -98,7 +100,6 @@ for i in range(1, 4):
         D_perturb_list.append(0.0)
     elif change_type == "Addition":
         st.markdown(f"**Agent Addition for Boundary {i}:**")
-        # Only display sliders for species that are present (nonzero coefficient).
         if selected_reaction['a'] != 0:
             A_eff = st.slider(
                 f"A Perturb for Boundary {i}",
@@ -146,15 +147,17 @@ for i in range(1, 4):
         temp_effects.append(0.0)
         vol_effects.append(0.0)
 
-# Save the configuration to session state.
-st.session_state['reaction_choice'] = reaction_choice
-st.session_state['selected_reaction'] = selected_reaction
-st.session_state['phase_changes'] = phase_changes
-st.session_state['temp_effects'] = temp_effects
-st.session_state['vol_effects'] = vol_effects
-st.session_state['A_perturb_list'] = A_perturb_list
-st.session_state['B_perturb_list'] = B_perturb_list
-st.session_state['C_perturb_list'] = C_perturb_list
-st.session_state['D_perturb_list'] = D_perturb_list
+# Add a "Save Configuration" button.
+if st.button("Save Configuration"):
+    st.session_state['reaction_choice'] = reaction_choice
+    st.session_state['selected_reaction'] = selected_reaction
+    st.session_state['phase_changes'] = phase_changes
+    st.session_state['temp_effects'] = temp_effects
+    st.session_state['vol_effects'] = vol_effects
+    st.session_state['A_perturb_list'] = A_perturb_list
+    st.session_state['B_perturb_list'] = B_perturb_list
+    st.session_state['C_perturb_list'] = C_perturb_list
+    st.session_state['D_perturb_list'] = D_perturb_list
+    st.success("Configuration saved!")
 
-st.info("Configuration saved! Now navigate to the Simulation page via the sidebar.")
+st.info("Your configuration will persist between sessions. Now navigate to the Simulation page via the sidebar.")
