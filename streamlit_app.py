@@ -4,7 +4,7 @@ import streamlit as st
 st.set_page_config(page_title="Reaction Setup", page_icon="⚗️", layout="wide")
 
 st.title("Reaction Setup")
-st.markdown("Choose a reaction and define the phase boundary changes.")
+st.markdown("Choose a reaction and define the phase boundary changes. Your selections will be saved automatically, and you can then navigate to the Simulation page using the sidebar.")
 
 # Define a dictionary of example reactions.
 reaction_options = {
@@ -22,7 +22,7 @@ reaction_options = {
     }
 }
 
-# Reaction selection
+# Reaction selection.
 reaction_choice = st.selectbox("Choose a Reaction", list(reaction_options.keys()))
 selected_reaction = reaction_options[reaction_choice]
 
@@ -57,17 +57,15 @@ if "Addition" in phase_changes:
 else:
     A_perturb = B_perturb = C_perturb = D_perturb = 0.0
 
-# When ready, save the parameters in session state and move to the simulation page.
-if st.button("Go to Simulation"):
-    st.session_state['reaction_choice'] = reaction_choice
-    st.session_state['selected_reaction'] = selected_reaction
-    st.session_state['phase_changes'] = phase_changes
-    st.session_state['temp_effect'] = temp_effect
-    st.session_state['vol_effect'] = vol_effect
-    st.session_state['A_perturb'] = A_perturb
-    st.session_state['B_perturb'] = B_perturb
-    st.session_state['C_perturb'] = C_perturb
-    st.session_state['D_perturb'] = D_perturb
-    # Use st.set_query_params to set the query parameters.
-    st.set_query_params(page="Simulation")
-    st.rerun()
+# Save the parameters into session state.
+st.session_state['reaction_choice'] = reaction_choice
+st.session_state['selected_reaction'] = selected_reaction
+st.session_state['phase_changes'] = phase_changes
+st.session_state['temp_effect'] = temp_effect
+st.session_state['vol_effect'] = vol_effect
+st.session_state['A_perturb'] = A_perturb
+st.session_state['B_perturb'] = B_perturb
+st.session_state['C_perturb'] = C_perturb
+st.session_state['D_perturb'] = D_perturb
+
+st.info("Configuration saved! Please navigate to the Simulation page from the sidebar to view the simulation.")
