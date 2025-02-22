@@ -56,10 +56,9 @@ B_perturb_list = []
 C_perturb_list = []
 D_perturb_list = []
 
-# Loop over the three boundaries.
-for i in range(1, 4):
+# Loop over 4 boundaries (yielding 5 phases).
+for i in range(1, 5):
     st.markdown(f"### Boundary {i} Change")
-    # Select the change type for Boundary i.
     change_type = st.selectbox(
         f"Select Change Type for Boundary {i}",
         ["Temperature", "Volume/Pressure", "Addition"],
@@ -67,7 +66,6 @@ for i in range(1, 4):
     )
     phase_changes.append(change_type)
     
-    # Display sliders immediately below the selectbox.
     if change_type == "Temperature":
         effect = st.slider(
             f"Temperature Effect for Boundary {i}",
@@ -98,7 +96,6 @@ for i in range(1, 4):
         D_perturb_list.append(0.0)
     elif change_type == "Addition":
         st.markdown(f"**Agent Addition for Boundary {i}:**")
-        # Only display sliders for species that are present (nonzero coefficient).
         if selected_reaction['a'] != 0:
             A_eff = st.slider(
                 f"A Perturb for Boundary {i}",
