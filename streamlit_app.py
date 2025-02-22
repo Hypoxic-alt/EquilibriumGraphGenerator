@@ -46,74 +46,94 @@ reaction_choice = st.selectbox(
 selected_reaction = reaction_options[reaction_choice]
 
 st.subheader("Phase Boundary Changes")
-st.markdown("For each boundary (after Phase 1), choose the type of change and specify its effect. "
-            "For example, you can choose a temperature change and set it as an increase (positive value) or decrease (negative value).")
 
-# For each boundary, let the user select the type and then its effect.
-# We have three boundaries.
+# Prepare lists to store boundary change choices and their effects.
+phase_changes = []
+temp_effects = []
+vol_effects = []
+A_perturb_list = []
+B_perturb_list = []
+C_perturb_list = []
+D_perturb_list = []
 
-phase_change1 = st.selectbox("Boundary 1 Change", ["Temperature", "Volume/Pressure", "Addition"], key="phase1")
-phase_change2 = st.selectbox("Boundary 2 Change", ["Temperature", "Volume/Pressure", "Addition"], key="phase2")
-phase_change3 = st.selectbox("Boundary 3 Change", ["Temperature", "Volume/Pressure", "Addition"], key="phase3")
-phase_changes = [phase_change1, phase_change2, phase_change3]
-
-# Prepare dictionaries to hold the effect values for each boundary.
-temp_effects = [0.0, 0.0, 0.0]
-vol_effects = [0.0, 0.0, 0.0]
-A_perturb_list = [0.0, 0.0, 0.0]
-B_perturb_list = [0.0, 0.0, 0.0]
-C_perturb_list = [0.0, 0.0, 0.0]
-D_perturb_list = [0.0, 0.0, 0.0]
-
-for i, change_type in enumerate(phase_changes, start=1):
-    st.markdown(f"**Boundary {i} ({change_type})**")
+# Loop over the three boundaries.
+for i in range(1, 4):
+    st.markdown(f"### Boundary {i} Change")
+    # Select the change type for Boundary i.
+    change_type = st.selectbox(
+        f"Select Change Type for Boundary {i}",
+        ["Temperature", "Volume/Pressure", "Addition"],
+        key=f"phase_change_{i}"
+    )
+    phase_changes.append(change_type)
+    
+    # Based on the selected type, display the appropriate slider(s).
     if change_type == "Temperature":
-        temp_effects[i-1] = st.slider(
+        effect = st.slider(
             f"Temperature Effect for Boundary {i}",
             min_value=-1.0, max_value=1.0,
             value=st.session_state.get(f"temp_effect{i}", 0.0),
             step=0.05,
-            key=f"temp_effect{i}"
+            key=f"temp_effect_{i}"
         )
+        temp_effects.append(effect)
+        vol_effects.append(0.0)
+        A_perturb_list.append(0.0)
+        B_perturb_list.append(0.0)
+        C_perturb_list.append(0.0)
+        D_perturb_list.append(0.0)
     elif change_type == "Volume/Pressure":
-        vol_effects[i-1] = st.slider(
+        effect = st.slider(
             f"Volume/Pressure Effect for Boundary {i}",
             min_value=-0.5, max_value=0.5,
             value=st.session_state.get(f"vol_effect{i}", 0.0),
             step=0.05,
-            key=f"vol_effect{i}"
+            key=f"vol_effect_{i}"
         )
+        vol_effects.append(effect)
+        temp_effects.append(0.0)
+        A_perturb_list.append(0.0)
+        B_perturb_list.append(0.0)
+        C_perturb_list.append(0.0)
+        D_perturb_list.append(0.0)
     elif change_type == "Addition":
-        A_perturb_list[i-1] = st.slider(
+        st.markdown(f"**Agent Addition for Boundary {i}:**")
+        A_eff = st.slider(
             f"A Perturb for Boundary {i}",
             min_value=-0.5, max_value=0.5,
             value=st.session_state.get(f"A_perturb{i}", 0.0),
             step=0.05,
-            key=f"A_perturb{i}"
+            key=f"A_perturb_{i}"
         )
-        B_perturb_list[i-1] = st.slider(
+        B_eff = st.slider(
             f"B Perturb for Boundary {i}",
             min_value=-0.5, max_value=0.5,
             value=st.session_state.get(f"B_perturb{i}", 0.0),
             step=0.05,
-            key=f"B_perturb{i}"
+            key=f"B_perturb_{i}"
         )
-        C_perturb_list[i-1] = st.slider(
+        C_eff = st.slider(
             f"C Perturb for Boundary {i}",
             min_value=-0.5, max_value=0.5,
             value=st.session_state.get(f"C_perturb{i}", 0.0),
             step=0.05,
-            key=f"C_perturb{i}"
+            key=f"C_perturb_{i}"
         )
-        D_perturb_list[i-1] = st.slider(
+        D_eff = st.slider(
             f"D Perturb for Boundary {i}",
             min_value=-0.5, max_value=0.5,
             value=st.session_state.get(f"D_perturb{i}", 0.0),
             step=0.05,
-            key=f"D_perturb{i}"
+            key=f"D_perturb_{i}"
         )
+        A_perturb_list.append(A_eff)
+        B_perturb_list.append(B_eff)
+        C_perturb_list.append(C_eff)
+        D_perturb_list.append(D_eff)
+        temp_effects.append(0.0)
+        vol_effects.append(0.0)
 
-# Save all parameters into session state.
+# Save the configuration to session state.
 st.session_state['reaction_choice'] = reaction_choice
 st.session_state['selected_reaction'] = selected_reaction
 st.session_state['phase_changes'] = phase_changes
