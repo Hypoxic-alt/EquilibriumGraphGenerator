@@ -128,10 +128,10 @@ def simulate_reaction(a, b, c, d, reaction_type,
     plt.xlabel("Time")
     plt.ylabel("Concentration")
     if show_title:
-        title_str = ("{}: {}A + {}B ↔ {}C + {}D  |  Reaction: {}  |  Boundaries: {}, {}, {}"
+        # The title no longer mentions the phase boundaries.
+        title_str = ("{}: {}A + {}B ↔ {}C + {}D  |  Reaction: {}"
                      .format(st.session_state['reaction_choice'],
-                             a, b, c, d, reaction_type,
-                             phase_changes[0], phase_changes[1], phase_changes[2]))
+                             a, b, c, d, reaction_type))
         plt.title(title_str)
     plt.tight_layout()
     return fig
