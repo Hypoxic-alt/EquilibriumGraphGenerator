@@ -154,7 +154,7 @@ for i in range(1, 4):
 # Save Configuration Button
 # -------------------------------
 if st.button("Save Configuration"):
-    # Instead of writing to widget keys, we store configuration in a separate key.
+    # Save the current configuration under a separate key.
     config = {
         "reaction_choice": reaction_choice,
         "selected_reaction": selected_reaction,
@@ -168,5 +168,26 @@ if st.button("Save Configuration"):
     }
     st.session_state["config"] = config
     st.success("Configuration saved!")
+
+# -------------------------------
+# Update Sliders Button
+# -------------------------------
+if st.button("Update Sliders to Saved Config"):
+    if "config" in st.session_state:
+        config = st.session_state["config"]
+        # Reset the widget keys with values from the saved config.
+        st.session_state["reaction_choice"] = config["reaction_choice"]
+        for i in range(1, 4):
+            st.session_state[f"phase_change_{i}"] = config["phase_changes"][i-1]
+            st.session_state[f"temp_effect{i}"] = config["temp_effects"][i-1]
+            st.session_state[f"vol_effect{i}"] = config["vol_effects"][i-1]
+            st.session_state[f"A_perturb{i}"] = config["A_perturb_list"][i-1]
+            st.session_state[f"B_perturb{i}"] = config["B_perturb_list"][i-1]
+            st.session_state[f"C_perturb{i}"] = config["C_perturb_list"][i-1]
+            st.session_state[f"D_perturb{i}"] = config["D_perturb_list"][i-1]
+        st.success("Sliders updated to saved configuration!")
+        st.experimental_rerun()  # Force a rerun so the UI refreshes with updated values.
+    else:
+        st.error("No configuration saved to load.")
 
 st.info("Configuration saved in session state. You can now switch to the Simulation page.")
