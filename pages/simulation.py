@@ -91,23 +91,24 @@ def simulate_reaction(a, b, c, d, delta_H,
     plt.tight_layout()
     return fig
 
-if 'selected_reaction' not in st.session_state:
-    st.error("No reaction selected. Please go back to the Reaction Setup page and save a configuration.")
+if "config" not in st.session_state:
+    st.error("No reaction configuration found. Please go to the Reaction Setup page and save a configuration.")
 else:
-    reaction_choice = st.session_state['reaction_choice']
-    selected_reaction = st.session_state['selected_reaction']
-    a = selected_reaction['a']
-    b = selected_reaction['b']
-    c = selected_reaction['c']
-    d = selected_reaction['d']
-    delta_H = selected_reaction['delta_H']
-    phase_changes = st.session_state['phase_changes']
-    temp_effects = st.session_state['temp_effects']
-    vol_effects = st.session_state['vol_effects']
-    A_perturb_list = st.session_state['A_perturb_list']
-    B_perturb_list = st.session_state['B_perturb_list']
-    C_perturb_list = st.session_state['C_perturb_list']
-    D_perturb_list = st.session_state['D_perturb_list']
+    config = st.session_state["config"]
+    reaction_choice = config["reaction_choice"]
+    selected_reaction = config["selected_reaction"]
+    a = selected_reaction["a"]
+    b = selected_reaction["b"]
+    c = selected_reaction["c"]
+    d = selected_reaction["d"]
+    delta_H = selected_reaction["delta_H"]
+    phase_changes = config["phase_changes"]
+    temp_effects = config["temp_effects"]
+    vol_effects = config["vol_effects"]
+    A_perturb_list = config["A_perturb_list"]
+    B_perturb_list = config["B_perturb_list"]
+    C_perturb_list = config["C_perturb_list"]
+    D_perturb_list = config["D_perturb_list"]
 
     st.write("Reaction Selected:", reaction_choice)
     
