@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 
-# Set page configuration (optional)
 st.set_page_config(page_title="Simulation", page_icon="⚗️", layout="wide")
 
 def generic_reaction(concentrations, t, k1, k2, a, b, c, d):
@@ -14,8 +13,8 @@ def generic_reaction(concentrations, t, k1, k2, a, b, c, d):
     r = r_forward - r_reverse
     dA_dt = -a * r
     dB_dt = -b * r
-    dC_dt =  c * r
-    dD_dt =  d * r
+    dC_dt = c * r
+    dD_dt = d * r
     return [dA_dt, dB_dt, dC_dt, dD_dt]
 
 def simulate_reaction(a, b, c, d, reaction_type,
@@ -71,7 +70,7 @@ def simulate_reaction(a, b, c, d, reaction_type,
     fig = plt.figure(figsize=(10, 6))
     phases_labels = ["Phase 1", "Phase 2", "Phase 3", "Phase 4"]
 
-    # Plot each species in each phase if enabled.
+    # Plot each species for each phase if enabled.
     for i, sol in enumerate(sols):
         if a != 0:
             if (i == 0 and A_phase1) or (i == 1 and A_phase2) or (i == 2 and A_phase3) or (i == 3 and A_phase4):
