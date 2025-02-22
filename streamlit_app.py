@@ -68,6 +68,6 @@ if st.button("Go to Simulation"):
     st.session_state['B_perturb'] = B_perturb
     st.session_state['C_perturb'] = C_perturb
     st.session_state['D_perturb'] = D_perturb
-    # Use st.query_params to set the query parameters.
-    st.query_params(page="Simulation")
+    # Use st.set_query_params to set the query parameters.
+    st.set_query_params(page="Simulation")
     st.rerun()
