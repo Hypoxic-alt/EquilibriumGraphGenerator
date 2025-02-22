@@ -19,7 +19,7 @@ reaction_options = {
 }
 
 # -------------------------------
-# Initialize session state defaults
+# Initialize session state defaults for widget keys
 # -------------------------------
 if "reaction_choice" not in st.session_state:
     st.session_state["reaction_choice"] = list(reaction_options.keys())[0]
@@ -41,7 +41,7 @@ for i in range(1, 4):
         st.session_state[f"D_perturb{i}"] = 0.0
 
 # -------------------------------
-# Reaction Selection Widget
+# Reaction Selection Widget (state is maintained automatically)
 # -------------------------------
 reaction_choice = st.selectbox(
     "Choose a Reaction",
@@ -53,6 +53,7 @@ selected_reaction = reaction_options[reaction_choice]
 
 st.subheader("Phase Boundary Changes")
 
+# Prepare lists to store boundary settings.
 phase_changes = []
 temp_effects = []
 vol_effects = []
@@ -153,15 +154,19 @@ for i in range(1, 4):
 # Save Configuration Button
 # -------------------------------
 if st.button("Save Configuration"):
-    st.session_state["reaction_choice"] = reaction_choice
-    st.session_state["selected_reaction"] = selected_reaction
-    st.session_state["phase_changes"] = phase_changes
-    st.session_state["temp_effects"] = temp_effects
-    st.session_state["vol_effects"] = vol_effects
-    st.session_state["A_perturb_list"] = A_perturb_list
-    st.session_state["B_perturb_list"] = B_perturb_list
-    st.session_state["C_perturb_list"] = C_perturb_list
-    st.session_state["D_perturb_list"] = D_perturb_list
+    # Instead of writing to widget keys, we store configuration in a separate key.
+    config = {
+        "reaction_choice": reaction_choice,
+        "selected_reaction": selected_reaction,
+        "phase_changes": phase_changes,
+        "temp_effects": temp_effects,
+        "vol_effects": vol_effects,
+        "A_perturb_list": A_perturb_list,
+        "B_perturb_list": B_perturb_list,
+        "C_perturb_list": C_perturb_list,
+        "D_perturb_list": D_perturb_list,
+    }
+    st.session_state["config"] = config
     st.success("Configuration saved!")
 
 st.info("Configuration saved in session state. You can now switch to the Simulation page.")
